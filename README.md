@@ -70,14 +70,14 @@ After some experiments, we found that the performance of our model varies from d
 ### Training/Evaluation loss and accuracy plot
 Here is the loss and accuracy trends throughout training/evaluation steps on `AMD` stock:
 
-![image](http://github.com/MingyuZha/Deep_Learning_In_Limited_Order_Books/raw/master/images/AMD.acc&loss.sl=20.png)
+![image](./images/AMD.acc&loss.sl=20.png)
 
 We can see that there is a little bit overfitting here, we are trying to imporve this further.
 
 ### Model Performance on different truncation length
 We also experimented with different truncation length:
 
-![image](http://github.com/MingyuZha/Deep_Learning_In_Limited_Order_Books/raw/master/images/AMD.acc.sl=20&30&40&50.png)
+![image](./images/AMD.acc.sl=20&30&40&50.png)
 
 Larger truncation length do have positive influence on the model performance, though not very large.
 
