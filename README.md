@@ -61,8 +61,9 @@ When we return the output, we do a `log_softmax` operation, since we need the ou
 
 ## Results
 After some experiments, we found that the performance of our model varies from different stocks. We used traditional **feed-forward neural network** as baseline. I put a table below to show the Evaluation accuracy on different stocks.
+
 |        | AAPL | AMD  | CBS |
-|:-------------:|:-------------:|:-----:|:-----:|
+|:------:|:-----:|:-----:|:-----:|
 | LSTM | 62.23% | 72.84% | 47.82% |
 | Neural Network | 58.52% | 67.29% | 45.13% |
 
