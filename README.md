@@ -1,6 +1,11 @@
 # Deep Learning Model for High-frequency Financial Data
 ## Introduction
 Nowadays, deep learning has shown its power in tramendous areas, like computer vision, natural languange processing, etc. However, this project focuses on applying deep learning methods in high-frequency financial data --- Limited Order Books, to predict the next mid price move direction and magnitude. 
+
+## Task
+Our task is to predict the next best ask price's **conditional** probability of moving direction and magnitude. We are not caring about the circumstance that the next best ask price do not move. We will say if the price **do** move, then what's the probability of it going up and going down, and further more, what's the probability of it going up 1 cent, 2 cents, ... ?
+
+
 ## Data
 The data we use for this project is fixed time interval data, it can be requested on https://lobsterdata.com/. 
 The data file contains three keys:
