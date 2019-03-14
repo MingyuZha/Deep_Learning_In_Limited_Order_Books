@@ -18,7 +18,6 @@ The raw limited order book state has 40 dimensions. The format is like this:
 |:-------------:|:-------------:|:-----:|:-----:|:-----:|:-----:|:-----:|
 | Best ask price | Best ask size | Best bid price | Best bid size | 2nd ask price | 2nd ask size | ...
 
-
 However, the spread of ask and bid prices changes through time, and the price magnitude barely have meaningful information we need. Therefore, we have to:
 1. Binning the price spread. Here we set 20 bins ( 10 for ask price, 10 for bid price )
 2. Put the corresponding sizes into the bins.
@@ -60,15 +59,42 @@ When we return the output, we do a `log_softmax` operation, since we need the ou
 * **Hidden units**: 200
 
 ## Results
+### Accuracy on different stocks
 After some experiments, we found that the performance of our model varies from different stocks. We used traditional **feed-forward neural network** as baseline. I put a table below to show the Evaluation accuracy on different stocks.
 
 |        | AAPL | AMD  | CBS |
-|:------:|:-----:|:-----:|:-----:|
+|:-------------:|:-------------:|:-----:|:-----:|
 | LSTM | 62.23% | 72.84% | 47.82% |
 | Neural Network | 58.52% | 67.29% | 45.13% |
 
+### Training/Evaluation loss and accuracy plot
+Here is the loss and accuracy trends throughout training/evaluation steps on `AMD` stock:
+![image](http://github.com/MingyuZha/Deep_Learning_In_Limited_Order_Books/raw/master/images/AMD.acc&loss.sl=20.png)
+We can see that there is a little bit overfitting here, we are trying to imporve this further.
 
-We also printed the training and evaluation loss:
+### Model Performance on different truncation length
+We also experimented with different truncation length:
+![image](http://github.com/MingyuZha/Deep_Learning_In_Limited_Order_Books/raw/master/images/AMD.acc.sl=20&30&40&50.png)
+Larger truncation length do have positive influence on the model performance, though not very large.
+
+### Precision and Recall
+**Precision and Recall**  is a very import metric for a classification model, since most of time we care more about model's performance on a certain category input. However, the data we used to train our model is highly imbalanced, which is very very common in limit order books, because the time interval is only **one second**! Therefore, most of the time the best mid price would remain the same or just move a very small magnitude.
+
+|   Class   | 0 | 1  | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| Num of records | 4 | 6 | 70 | 1341 | 60349 | 1353 | 49 | 5 | 3 |
+| **Precision** | 0% | 0% | 0% | 78.82% | - | 79.38% | 0% | 0% | 0% |
+
+
+|   Class   | 0 | 1  | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| Num of records | 0 | 0 | 1 | 1405 | - | 1425 | 0 | 0 | 0 |
+| **Recall** | - | - | 0% | 75.23% | - | 75.37% | - | - | - |
+
+
+
+
+
 
 
 
