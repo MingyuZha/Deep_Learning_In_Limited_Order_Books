@@ -17,6 +17,8 @@ The raw limited order book state has 40 dimensions. The format is like this:
 | Col 1        | Col 2           | Col3  | Col4 | Col5 | Col6 | ...
 |:-------------:|:-------------:|:-----:|:-----:|:-----:|:-----:|:-----:|
 | Best ask price | Best ask size | Best bid price | Best bid size | 2nd ask price | 2nd ask size | ...
+
+
 However, the spread of ask and bid prices changes through time, and the price magnitude barely have meaningful information we need. Therefore, we have to:
 1. Binning the price spread. Here we set 20 bins ( 10 for ask price, 10 for bid price )
 2. Put the corresponding sizes into the bins.
