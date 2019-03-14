@@ -65,6 +65,8 @@ After some experiments, we found that the performance of our model varies from d
 |:-------------:|:-------------:|:-----:|:-----:|
 | LSTM | 62.23% | 72.84% | 47.82% |
 | Neural Network | 58.52% | 67.29% | 45.13% |
+
+
 We also printed the training and evaluation loss:
 
 
