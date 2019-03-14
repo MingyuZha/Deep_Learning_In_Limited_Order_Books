@@ -1,10 +1,13 @@
 import os
+
 import numpy as np
 import torch
 import torch.nn.functional as F
-from torch.autograd import Variable
-from OrderBook import LimitOrderBook_magnitude
 from lstm import LSTM_model
+from torch.autograd import Variable
+
+from src.OrderBook import LimitOrderBook_magnitude
+
 
 def eval():
     model.eval()

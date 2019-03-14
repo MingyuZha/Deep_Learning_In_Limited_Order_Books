@@ -1,11 +1,13 @@
 import os
+
 import numpy as np
 import torch
 import torch.nn.functional as F
-from torch.autograd import Variable
-from LSTM_Model.OrderBook import LimitOrderBook
 from LSTM_Model.lstm import LSTM_model
 from eval import eval
+from torch.autograd import Variable
+
+from src.OrderBook import LimitOrderBook
 
 root = "../"
 stock_name = "AAPL"

@@ -1,13 +1,9 @@
-import torch
-import torch.nn as nn
 import numpy as np
-from torch.autograd import Variable
-import h5py
-from time import *
-from OrderBook import LimitOrderBook_magnitude
-from lstm import LSTM_model
-import os
+import torch
 import torch.nn.functional as F
+from torch.autograd import Variable
+
+from src.OrderBook import LimitOrderBook_magnitude
 
 
 def eval(model, root, stock_name, num_levels, input_size, sequence_len, batch_size):

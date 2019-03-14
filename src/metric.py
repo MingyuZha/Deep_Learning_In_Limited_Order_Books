@@ -1,8 +1,9 @@
-import torch
 import numpy as np
-import os
-from OrderBook import LimitOrderBook_magnitude
+import torch
 from torch.autograd import Variable
+
+from src.OrderBook import LimitOrderBook_magnitude
+
 
 def _recall(model, x, y, category=4):
     correct = 0
