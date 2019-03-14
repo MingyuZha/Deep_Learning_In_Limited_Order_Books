@@ -58,6 +58,12 @@ When we return the output, we do a `log_softmax` operation, since we need the ou
 * **Batch size**: 256
 * **Hidden units**: 200
 
+### Output classes
+In our experiment, we set up <font color=red>**9 classes**</font>, they are:
+best ask price move down 1 cent, 2 cents, 3 cents, 4 or more cents, not move, move up 1 cent, 2 cents, 3 cents, 4 or more cents.
+
+
+
 ## Results
 ### Accuracy on different stocks
 After some experiments, we found that the performance of our model varies from different stocks. We used traditional **feed-forward neural network** as baseline. I put a table below to show the Evaluation accuracy on different stocks.
