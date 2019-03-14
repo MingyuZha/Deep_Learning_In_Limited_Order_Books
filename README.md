@@ -59,7 +59,7 @@ When we return the output, we do a `log_softmax` operation, since we need the ou
 * **Hidden units**: 200
 
 ### Output classes
-In our experiment, we set up **<font color=red>9 classes</font>**, they are:
+In our experiment, we set up **<font color="red">9 classes</font>**, they are:
 best ask price move down 1 cent, 2 cents, 3 cents, 4 or more cents, not move, move up 1 cent, 2 cents, 3 cents, 4 or more cents.
 
 
