@@ -1,4 +1,5 @@
-.DBStore
+/dates_file/*
+.DB_Store
 /outputFiles/*
 saved_model
 __pycache__
