@@ -1,11 +1,10 @@
 import os
-
+import argparse
 import numpy as np
 import torch
 import torch.nn.functional as F
 from lstm import LSTM_model
 from torch.autograd import Variable
-
 from src.OrderBook import LimitOrderBook_magnitude
 
 
@@ -66,7 +65,7 @@ if not os.path.exists(model_dir):
 
 ###################################################################
 EPOCHS = 30
-BATCH_SIZE = 256
+BATCH_SIZE = 128
 LR = 0.001
 sequence_len = 30
 input_size = 20
@@ -77,6 +76,7 @@ num_layers = 3  ##3
 scheduler_step_size = 10
 scheduler_gamma = .5
 num_classes = 9
+mode = "regression"
 
 print ("------------------------------------------------------------")
 print ("Batch size: %d\n"
@@ -93,11 +93,11 @@ print ("------------------------------------------------------------")
 
 
 
-Dataset = LimitOrderBook_magnitude(root=root, stock_name=stock_name, train=True, num_levels=num_levels, num_inputs=input_size,
-                         sequence_len=sequence_len)
+Dataset = LimitOrderBook_magnitude(root=root, stock_name=stock_name, mode="regression", train=True, num_levels=num_levels
+                                   , num_inputs=input_size, sequence_len=sequence_len)
 DataLoader = torch.utils.data.DataLoader(dataset=Dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=8)
 
-eval_dataset = LimitOrderBook_magnitude(root=root, stock_name=stock_name, train=False, num_levels=num_levels,
+eval_dataset = LimitOrderBook_magnitude(root=root, stock_name=stock_name, mode="regression", train=False, num_levels=num_levels,
                                   num_inputs=input_size, sequence_len=sequence_len)
 eval_dataLoader = torch.utils.data.DataLoader(eval_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=8)
 
@@ -106,7 +106,8 @@ model = LSTM_model(num_layers=num_layers,
                    input_size=input_size,
                    hidden_size=hidden_size,
                    fc_size=fc_size,
-                   output_size=num_classes)
+                   output_size=num_classes,
+                   mode=mode)
 
 if (torch.cuda.is_available()): model.cuda()
 model.train()
@@ -142,22 +143,28 @@ for epoch in range(EPOCHS):
 
         # avg_error = 0.
         for time_step in range(sequence_len):
-            ground_truth = Variable(torch.LongTensor(y[:, time_step].long()))
+            if (mode == "classification"):
+                ground_truth = Variable(torch.LongTensor(y[:, time_step].long()))
+            else:
+                ground_truth = Variable(y[:, time_step:(time_step+1)].float())
             if (torch.cuda.is_available()):
                 ground_truth = ground_truth.cuda()
 
-            #Calculate classification accuracy
-            probs = torch.cat((output[:, time_step, 0:4], output[:, time_step, 5:]),
-                              dim=1)  ##[0:1] retains the column structure
-            prediction = probs.data.max(1)[1]
-            prediction_np = prediction.cpu().numpy()
-            prediction_np[prediction_np >= 4] += 1
-            ground_truth_np = y[:, time_step].cpu().numpy()
-            I = (ground_truth_np != 4)
-            if (np.sum(I) > 0):
-                correct_counter += np.sum(ground_truth_np[I] == prediction_np[I])
-                total_counter += np.sum(I)
-            batch_loss += F.nll_loss(output[:, time_step, :], ground_truth)
+            if (mode == "classification"):
+                # Calculate classification accuracy
+                probs = torch.cat((output[:, time_step, 0:4], output[:, time_step, 5:]), dim=1)  ##[0:1] retains the column structure
+                prediction = probs.data.max(1)[1]
+                prediction_np = prediction.cpu().numpy()
+                prediction_np[prediction_np >= 4] += 1
+                ground_truth_np = y[:, time_step].cpu().numpy()
+                I = (ground_truth_np != 4)
+                if (np.sum(I) > 0):
+                    correct_counter += np.sum(ground_truth_np[I] == prediction_np[I])
+                    total_counter += np.sum(I)
+                batch_loss += F.nll_loss(output[:, time_step, :], ground_truth)
+            elif (mode == 'regression'):
+                # calculate training error
+                batch_loss += F.mse_loss(output[:, time_step, :], ground_truth)
 
         batch_loss = batch_loss / float(sequence_len)
         running_loss += batch_loss.item()
@@ -171,26 +178,30 @@ for epoch in range(EPOCHS):
         optimizer.step()
 
         if ((index + 1) % 10 == 0):
-            train_acc = correct_counter * 100. / total_counter
-            with open(output_dir + "sl=" + str(sequence_len) + ".training_loss.txt", "a") as f:
-                f.write("%.5f\n" % (running_loss / 10.))
-            with open(output_dir + "sl=" + str(sequence_len) + ".training_acc.txt", "a") as f:
-                f.write("%.5f%%\n" % (train_acc))
-            ##Evaluation phase
-            eval_result = eval()
-            eval_acc = eval_result["acc"]
-            eval_loss = eval_result["loss"]
-            with open(output_dir + "sl=" + str(sequence_len) + ".evaluation_loss.txt", "a") as f:
-                f.write("%.5f\n" % eval_loss)
-            with open(output_dir + "sl=" + str(sequence_len) + ".evaluation_acc.txt", "a") as f:
-                f.write("%.5f\n" % eval_acc)
-            print("[%d, %d]: %.5f, %.5f%%, %.5f, %.5f%%" % (index + 1, len(DataLoader), running_loss / 10.,
-                                                               100. * correct_counter / total_counter, eval_loss,
-                                                               eval_acc))
-            running_loss = 0.
-            correct_counter = 0
-            total_counter = 0
-            torch.save(model, model_dir + stock_name + ".model")
+            if (mode == "classification"):
+                train_acc = correct_counter * 100. / total_counter
+                with open(output_dir + "sl=" + str(sequence_len) + ".training_loss.txt", "a") as f:
+                    f.write("%.5f\n" % (running_loss / 10.))
+                with open(output_dir + "sl=" + str(sequence_len) + ".training_acc.txt", "a") as f:
+                    f.write("%.5f%%\n" % (train_acc))
+                ##Evaluation phase
+                eval_result = eval()
+                eval_acc = eval_result["acc"]
+                eval_loss = eval_result["loss"]
+                with open(output_dir + "sl=" + str(sequence_len) + ".evaluation_loss.txt", "a") as f:
+                    f.write("%.5f\n" % eval_loss)
+                with open(output_dir + "sl=" + str(sequence_len) + ".evaluation_acc.txt", "a") as f:
+                    f.write("%.5f\n" % eval_acc)
+                print("[%d, %d]: %.5f, %.5f%%, %.5f, %.5f%%" % (index + 1, len(DataLoader), running_loss / 10.,
+                                                                   100. * correct_counter / total_counter, eval_loss,
+                                                                   eval_acc))
+                running_loss = 0.
+                correct_counter = 0
+                total_counter = 0
+            else:
+                print ("[%d, %d]: %.5f"%(index+1, len(DataLoader), running_loss/10.))
+                running_loss = 0.
+            # torch.save(model, model_dir + stock_name + ".model")
 
 
 

@@ -1,0 +1,4 @@
+.DBStore
+/outputFiles/*
+saved_model
+__pycache__

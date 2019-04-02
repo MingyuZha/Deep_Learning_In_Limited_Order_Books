@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from torch.autograd import Variable
 
-from src.OrderBook import LimitOrderBook_magnitude
+from OrderBook import LimitOrderBook_magnitude
 
 
 def _recall(model, x, y, category=4):
@@ -35,7 +35,7 @@ def _recall(model, x, y, category=4):
                     output_recall = prediction[I]
                     correct += np.sum((y_recall == output_recall))
                     total += len(y_recall)
-    return {"acc": float(correct * 100)/total,
+    return {"correct": correct,
             "total": total}
 
 def _precision(model, x, y, category):
@@ -69,16 +69,17 @@ def _precision(model, x, y, category):
             "total": total}
 
 if __name__ == "__main__":
-    dataset = LimitOrderBook_magnitude(root="../", stock_name="AMD", train=False)
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=256, shuffle=False, num_workers=0)
-    iterator = iter(dataloader)
-    x, y = iterator.next()
-    for i in range(len(dataloader)-1):
-        next_x, next_y = iterator.next()
-        x = torch.cat((x, next_x), dim=0)
-        y = torch.cat((y, next_y), dim=0)
+    dataset = LimitOrderBook_magnitude(root="/projects/sciteam/bahp/OneSecondData1000/", stock_name="GOOGL", train=False)
+    dataloader = torch.utils.data.DataLoader(dataset, batch_size=256, shuffle=False, num_workers=8)
+    # iterator = iter(dataloader)
+    # x, y = iterator.next()
+    # for i in range(len(dataloader)-1):
+    #     next_x, next_y = iterator.next()
+    #     x = torch.cat((x, next_x), dim=0)
+    #     y = torch.cat((y, next_y), dim=0)
 
-    model = torch.load("./AMD.model", map_location="cpu")
+    model = torch.load("./saved_model_GOOGL/GOOGL.model")
+    model.cuda()
     model.eval()
     total_samples = 0
     # for category in range(9):
@@ -88,7 +89,14 @@ if __name__ == "__main__":
     # print ("Total samples: %d"%total_samples)
 
     for category in range(9):
-        result = _recall(model, x, y, category)
-        print ("Total number of samples: %d, Recall: %.2f%%"%(result["total"], result["acc"]))
-        total_samples += result["total"]
+        all_correct = 0
+        all = 0
+        for index, data in enumerate(dataloader):
+            x, y = data
+            result = _recall(model, x, y, category)
+            all_correct += result["correct"]
+            all += result["total"]
+            # print ("Total number of samples: %d, Recall: %.2f%%"%(result["total"], result["acc"]))
+            total_samples += result['total']
+        print ("Category: %d, Total number of samples: %d, Recall: %.2f%%\n"%(category, all, float(all_correct*100)/all))
     print ("Total samples: %d"%total_samples)

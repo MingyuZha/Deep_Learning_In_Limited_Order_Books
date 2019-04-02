@@ -94,11 +94,12 @@ class LimitOrderBook(Dataset):
 
 
 class LimitOrderBook_magnitude(Dataset):
-    def __init__(self, root, stock_name, train=True, num_levels=10, num_inputs=20, sequence_len=20):
+    def __init__(self, root, stock_name, mode="classification", train=True, num_levels=10, num_inputs=20, sequence_len=20):
         """
         root: "./xxx"
         stock_name: "AAPL"
         date: "2014-01-05"
+        mode: options:[classification, regression]
         """
         print ("Start building the dataset...")
         self.root = root
@@ -131,13 +132,16 @@ class LimitOrderBook_magnitude(Dataset):
                     X_new[I_bid, level+num_levels] = X[I_bid, col+3] / 10000.
 
             next_best_ask = copy.deepcopy(Y[:, 0])
-            magnitude = (next_best_ask - X_ask_best) / 100
-            I = (magnitude > 4)
-            magnitude[I] = 4
-            I = (magnitude < -4)
-            magnitude[I] = -4
-            Y_new = magnitude
-            Y_new += 4
+            if (mode == "classification"):
+                magnitude = (next_best_ask - X_ask_best) / 100
+                Y_new = copy.deepcopy(magnitude)
+                I = (magnitude >= 4)
+                Y_new[I] = 4
+                Y_new[magnitude <= -4] = -4
+                Y_new += 4
+            else:
+                magnitude = (next_best_ask - X_ask_best)/100.
+                Y_new = copy.deepcopy(magnitude)
 
             self.X_train.append(X_new)
             self.Y_train.append(Y_new)
@@ -176,10 +180,10 @@ def _generateDateList(root, stock_name, train=True):
         np.save("./dates_file/"+stock_name+"_dates.npy", dates)
     if (train):
         start_date = "2014-01-01"
-        end_date = "2014-01-15"
+        end_date = "2016-12-31"
     else:
         start_date = "2017-01-01"
-        end_date = "2017-01-05"
+        end_date = "2017-03-31"
     date_list = np.array((pd.date_range(start=start_date, end=end_date)).date)
     date_list = [item.strftime('%Y-%m-%d')for item in date_list]
     date_list = sorted(list(set(date_list)&set(dates)))
@@ -189,9 +193,13 @@ def _generateDateList(root, stock_name, train=True):
 
 
 if __name__ == "__main__":
-    dataset = LimitOrderBook_magnitude("../", "CBS")
+    dataset = LimitOrderBook_magnitude("../../", "AAPL", mode="regression")
     dataLoader = torch.utils.data.DataLoader(dataset, 128, False, num_workers=0)
-    print (len(dataLoader))
+    for index, data in enumerate(dataLoader):
+        x, y = data
+        y = y.numpy()
+        print (y)
+        break
     # print ("Total samples: ", np.sum(counts))
     # print("Class Distribution: ", counts
 
